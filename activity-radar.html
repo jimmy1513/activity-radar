@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f2e8">
+  <meta name="application-name" content="今天去哪">
+  <meta name="apple-mobile-web-app-title" content="今天去哪">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="activity-radar-icon.svg" type="image/svg+xml">
+  <title>今天去哪</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f2e8;
+      --surface: #fffdf8;
+      --surface-strong: #ffffff;
+      --ink: #24231f;
+      --muted: #706b61;
+      --line: #ded6c8;
+      --green: #315c4b;
+      --green-soft: #e1eee5;
+      --coral: #c85d4a;
+      --blue: #33658a;
+      --shadow: 0 18px 45px rgba(40, 35, 25, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 253, 248, 0.92), rgba(247, 242, 232, 0.96)),
+        var(--bg);
+      color: var(--ink);
+      font-family:
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        "PingFang TC",
+        system-ui,
+        sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(100%, 980px);
+      margin: 0 auto;
+      padding: 18px clamp(14px, 4vw, 28px) 32px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 0 18px;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--green);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 10vw, 4.2rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: clamp(0.95rem, 3.5vw, 1.08rem);
+      line-height: 1.6;
+    }
+
+    .status-pill {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.65);
+      color: var(--muted);
+      font-size: 0.83rem;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid rgba(222, 214, 200, 0.9);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, 0.88);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 16px 0;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 1.02rem;
+      line-height: 1.35;
+    }
+
+    .form {
+      display: grid;
+      gap: 15px;
+      padding: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    label,
+    .field-label {
+      color: var(--ink);
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .input {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      color: var(--ink);
+      padding: 0 13px;
+      outline: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(51, 101, 138, 0.14);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .chip {
+      position: relative;
+      min-width: 0;
+    }
+
+    .chip input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .chip span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      color: var(--ink);
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      word-break: keep-all;
+      transition:
+        background 140ms ease,
+        border-color 140ms ease,
+        color 140ms ease,
+        transform 140ms ease;
+    }
+
+    .chip input:checked + span {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fffdf8;
+    }
+
+    .chip input:focus-visible + span {
+      box-shadow: 0 0 0 4px rgba(49, 92, 75, 0.16);
+    }
+
+    .chip:active span {
+      transform: translateY(1px);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      position: sticky;
+      bottom: 0;
+      padding-top: 4px;
+      background: linear-gradient(180deg, rgba(255, 253, 248, 0), rgba(255, 253, 248, 0.95) 28%);
+    }
+
+    .button {
+      min-height: 48px;
+      border: 0;
+      border-radius: var(--radius);
+      padding: 0 14px;
+      color: #fffdf8;
+      background: var(--green);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+
+    .button.secondary {
+      min-width: 52px;
+      background: var(--coral);
+      font-size: 1.12rem;
+    }
+
+    .button:hover {
+      filter: brightness(1.04);
+    }
+
+    .button:active {
+      transform: translateY(1px);
+    }
+
+    .output-panel {
+      display: grid;
+      min-height: 100%;
+    }
+
+    .output-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 140ms ease, transform 140ms ease;
+    }
+
+    .icon-button svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .icon-button:active {
+      transform: translateY(1px);
+    }
+
+    .prompt-box {
+      width: calc(100% - 32px);
+      min-height: 540px;
+      margin: 16px;
+      resize: vertical;
+      border: 1px solid rgba(222, 214, 200, 0.95);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      color: var(--ink);
+      padding: 15px;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      outline: none;
+      white-space: pre-wrap;
+    }
+
+    .prompt-box:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(51, 101, 138, 0.14);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      z-index: 20;
+      width: min(calc(100% - 28px), 360px);
+      transform: translate(-50%, 120%);
+      border-radius: var(--radius);
+      background: #24231f;
+      color: #fffdf8;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      opacity: 0;
+      box-shadow: 0 14px 34px rgba(36, 35, 31, 0.22);
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    .toast.is-visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        padding-bottom: 24px;
+      }
+
+      .topbar {
+        display: block;
+        padding-top: max(10px, env(safe-area-inset-top));
+      }
+
+      .status-pill {
+        margin-top: 13px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        box-shadow: 0 12px 28px rgba(40, 35, 25, 0.1);
+      }
+
+      .prompt-box {
+        min-height: 360px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .segmented {
+        gap: 6px;
+      }
+
+      .chip span {
+        min-height: 42px;
+        padding-inline: 7px;
+        font-size: 0.84rem;
+      }
+
+      .hint {
+        display: none;
+      }
+
+      .panel-header,
+      .form {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .prompt-box {
+        width: calc(100% - 24px);
+        margin: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <p class="eyebrow">Activity Radar</p>
+        <h1>今天去哪</h1>
+        <p class="subhead">選好狀態，生成一段可以直接貼到 ChatGPT 的活動搜尋提示詞。</p>
+      </div>
+      <div class="status-pill" id="saveStatus" aria-live="polite">本機保存</div>
+    </header>
+
+    <section class="layout" aria-label="活動雷達提示詞產生器">
+      <form class="panel form" id="radarForm">
+        <div class="field">
+          <div class="label-row">
+            <label for="origin">出發地</label>
+            <span class="hint">每次手填</span>
+          </div>
+          <input class="input" id="origin" name="origin" type="text" inputmode="text" autocomplete="off" placeholder="例：永安市場站">
+        </div>
+
+        <div class="field">
+          <div class="field-label">日期</div>
+          <div class="segmented" style="--columns: 3" role="radiogroup" aria-label="日期">
+            <label class="chip"><input type="radio" name="dateRange" value="今天" checked><span>今天</span></label>
+            <label class="chip"><input type="radio" name="dateRange" value="明天"><span>明天</span></label>
+            <label class="chip"><input type="radio" name="dateRange" value="今天或明天"><span>都可</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">總外出時間</div>
+          <div class="segmented" style="--columns: 4" role="radiogroup" aria-label="總外出時間">
+            <label class="chip"><input type="radio" name="duration" value="1.5 小時內"><span>1.5 小時</span></label>
+            <label class="chip"><input type="radio" name="duration" value="2 小時內" checked><span>2 小時</span></label>
+            <label class="chip"><input type="radio" name="duration" value="3 小時內"><span>3 小時</span></label>
+            <label class="chip"><input type="radio" name="duration" value="半天內"><span>半天</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">體力</div>
+          <div class="segmented" style="--columns: 3" role="radiogroup" aria-label="體力">
+            <label class="chip"><input type="radio" name="energy" value="低，想省力" checked><span>低</span></label>
+            <label class="chip"><input type="radio" name="energy" value="中，可以走一點"><span>中</span></label>
+            <label class="chip"><input type="radio" name="energy" value="高，可以多走"><span>高</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">空間</div>
+          <div class="segmented" style="--columns: 3" role="radiogroup" aria-label="室內戶外">
+            <label class="chip"><input type="radio" name="space" value="室內或半室內" checked><span>室內</span></label>
+            <label class="chip"><input type="radio" name="space" value="戶外"><span>戶外</span></label>
+            <label class="chip"><input type="radio" name="space" value="室內戶外都可以"><span>都可</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="budget">預算</label>
+            <span class="hint">元以內優先</span>
+          </div>
+          <input class="input" id="budget" name="budget" type="number" inputmode="numeric" min="0" step="50" value="500">
+        </div>
+
+        <div class="field">
+          <div class="field-label">心情</div>
+          <div class="segmented" style="--columns: 3" role="radiogroup" aria-label="心情">
+            <label class="chip"><input type="radio" name="mood" value="放鬆，低壓，不想排行程" checked><span>放鬆</span></label>
+            <label class="chip"><input type="radio" name="mood" value="想看展覽或有內容的地方"><span>看展</span></label>
+            <label class="chip"><input type="radio" name="mood" value="想散步，順路看看風景"><span>散步</span></label>
+            <label class="chip"><input type="radio" name="mood" value="想找咖啡或舒服座位"><span>咖啡</span></label>
+            <label class="chip"><input type="radio" name="mood" value="隨便給我一個最適合今天的選項"><span>隨便</span></label>
+            <label class="chip"><input type="radio" name="mood" value="想要一點新鮮感，但不要太累"><span>新鮮</span></label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="button" type="submit">生成提示詞</button>
+          <button class="button secondary" type="button" id="quickCopy" title="複製提示詞" aria-label="複製提示詞">⧉</button>
+        </div>
+      </form>
+
+      <section class="panel output-panel" aria-label="生成結果">
+        <div class="panel-header">
+          <h2 class="panel-title">提示詞</h2>
+          <div class="output-tools">
+            <button class="icon-button" type="button" id="resetButton" title="重設" aria-label="重設">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-button" type="button" id="copyButton" title="複製" aria-label="複製">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+        <textarea class="prompt-box" id="promptOutput" spellcheck="false" aria-label="生成的提示詞"></textarea>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "activityRadar:v1";
+
+    const defaults = {
+      origin: "",
+      dateRange: "今天",
+      duration: "2 小時內",
+      energy: "低，想省力",
+      space: "室內或半室內",
+      budget: "500",
+      mood: "放鬆，低壓，不想排行程"
+    };
+
+    const form = document.querySelector("#radarForm");
+    const output = document.querySelector("#promptOutput");
+    const toast = document.querySelector("#toast");
+    const saveStatus = document.querySelector("#saveStatus");
+    const copyButton = document.querySelector("#copyButton");
+    const quickCopy = document.querySelector("#quickCopy");
+    const resetButton = document.querySelector("#resetButton");
+    let toastTimer = 0;
+
+    function getRadioValue(name) {
+      const checked = form.querySelector(`input[name="${name}"]:checked`);
+      return checked ? checked.value : defaults[name];
+    }
+
+    function setRadioValue(name, value) {
+      const item = form.querySelector(`input[name="${name}"][value="${CSS.escape(value)}"]`);
+      if (item) item.checked = true;
+    }
+
+    function getState() {
+      return {
+        origin: form.origin.value.trim(),
+        dateRange: getRadioValue("dateRange"),
+        duration: getRadioValue("duration"),
+        energy: getRadioValue("energy"),
+        space: getRadioValue("space"),
+        budget: form.budget.value.trim() || defaults.budget,
+        mood: getRadioValue("mood")
+      };
+    }
+
+    function applyState(state) {
+      const data = { ...defaults, ...state };
+      form.origin.value = data.origin;
+      form.budget.value = data.budget;
+      setRadioValue("dateRange", data.dateRange);
+      setRadioValue("duration", data.duration);
+      setRadioValue("energy", data.energy);
+      setRadioValue("space", data.space);
+      setRadioValue("mood", data.mood);
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(getState()));
+        saveStatus.textContent = "已保存";
+      } catch {
+        saveStatus.textContent = "未保存";
+      }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          applyState(JSON.parse(raw));
+          saveStatus.textContent = "已載入";
+          return;
+        }
+      } catch {
+        saveStatus.textContent = "本機保存";
+      }
+      applyState(defaults);
+    }
+
+    function buildPrompt(state) {
+      const origin = state.origin || "我目前所在位置";
+      const budgetLine = Number(state.budget) > 0 ? `${state.budget} 元內優先` : "免費或低費用優先";
+
+      return `請幫我找「${state.dateRange}」可以去的活動、展覽、散步地點或咖啡附近行程。
+
+我的條件：
+- 出發地：${origin}
+- 總外出時間：${state.duration}，請把來回交通和現場停留都算進去
+- 體力：${state.energy}
+- 空間偏好：${state.space}
+- 預算：${budgetLine}
+- 今天心情：${state.mood}
+- 預設偏好：展覽、散步、咖啡、低壓、一個人也適合
+
+請即時查詢目前可用資訊，給我 5 個選項。不要排很滿，每個選項以 1 個主活動為主，可以加 1 個附近順路點。
+
+每個選項請用固定格式：
+1. 名稱
+2. 照片或預覽連結
+3. Google Maps 連結，如果是展覽、店家、景點、咖啡店或其他實體地點都要附
+4. 為什麼適合我
+5. 從出發地過去的交通方式與時間
+6. 預估總外出時間
+7. 費用
+8. 營業時間或活動時間
+9. 是否需要預約或買票
+10. 注意事項，例如休館、天氣、太熱、太晚、座位少
+
+最後請幫我標出：
+- 最省力
+- 最有趣
+- 最適合今天
+
+如果某個資訊不確定，請標「出門前需確認」，並附來源連結。實體地點的 Google Maps 連結也請盡量附上，方便我直接開地圖確認。`;
+    }
+
+    function generatePrompt() {
+      const state = getState();
+      const prompt = buildPrompt(state);
+      output.value = prompt;
+      saveState();
+      return prompt;
+    }
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      toastTimer = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+      }, 2200);
+    }
+
+    async function copyPrompt() {
+      const text = output.value.trim() || generatePrompt();
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("已複製，可以貼到 ChatGPT");
+      } catch {
+        output.focus();
+        output.select();
+        showToast("無法自動複製，已幫你選取文字");
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      generatePrompt();
+      showToast("提示詞已生成");
+    });
+
+    form.addEventListener("input", () => {
+      saveState();
+    });
+
+    form.addEventListener("change", () => {
+      saveState();
+      generatePrompt();
+    });
+
+    copyButton.addEventListener("click", copyPrompt);
+    quickCopy.addEventListener("click", copyPrompt);
+
+    resetButton.addEventListener("click", () => {
+      applyState(defaults);
+      generatePrompt();
+      showToast("已重設");
+    });
+
+    loadState();
+    generatePrompt();
+
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>

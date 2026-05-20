@@ -1,0 +1,18 @@
+{
+  "name": "今天去哪",
+  "short_name": "今天去哪",
+  "description": "手機版活動雷達提示詞產生器",
+  "start_url": "activity-radar.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f2e8",
+  "theme_color": "#f7f2e8",
+  "icons": [
+    {
+      "src": "activity-radar-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
