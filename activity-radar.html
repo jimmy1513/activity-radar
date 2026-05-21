@@ -499,7 +499,7 @@
         <div class="field">
           <div class="field-label">心情</div>
           <div class="segmented" style="--columns: 3" role="group" aria-label="心情，可複選最多兩個">
-            <label class="chip"><input type="checkbox" name="moods" value="放空，低壓，不想排行程" checked><span>放空</span></label>
+            <label class="chip"><input type="checkbox" name="moods" value="放空，低壓，不想排行程"><span>放空</span></label>
             <label class="chip"><input type="checkbox" name="moods" value="走走，想出門動一下但不要太硬"><span>走走</span></label>
             <label class="chip"><input type="checkbox" name="moods" value="看東西，想要有內容的展覽、書店、圖書館、博物館或藝文空間"><span>看東西</span></label>
             <label class="chip"><input type="checkbox" name="moods" value="坐下來，想找舒服座位、咖啡店、茶店或安靜空間"><span>坐下來</span></label>
@@ -533,7 +533,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    const STORAGE_KEY = "activityRadar:v3";
+    const STORAGE_KEY = "activityRadar:v4";
+    const LEGACY_STORAGE_KEYS = ["activityRadar:v3", "activityRadar:v2"];
     const MOOD_LIMIT = 2;
 
     const defaults = {
@@ -543,7 +544,7 @@
       energy: "低，想省力",
       space: "室內或半室內",
       budget: "400",
-      moods: ["放空，低壓，不想排行程"]
+      moods: []
     };
 
     const form = document.querySelector("#radarForm");
@@ -573,7 +574,7 @@
       const values = getMoodInputs()
         .filter((input) => input.checked)
         .map((input) => input.value);
-      return values.length ? values : defaults.moods;
+      return values;
     }
 
     function applyMoodValues(values) {
@@ -618,10 +619,6 @@
         }
       }
 
-      if (!inputs.some((input) => input.checked)) {
-        const fallback = inputs.find((input) => input.value === defaults.moods[0]) || inputs[0];
-        if (fallback) fallback.checked = true;
-      }
     }
 
     function getBudgetValue() {
@@ -656,7 +653,14 @@
       setRadioValue("duration", data.duration);
       setRadioValue("energy", data.energy);
       setRadioValue("space", data.space);
-      applyMoodValues(moods.length ? moods : defaults.moods);
+      applyMoodValues(moods);
+    }
+
+    function stripLegacyMoods(state) {
+      const data = { ...state };
+      delete data.mood;
+      delete data.moods;
+      return data;
     }
 
     function saveState() {
@@ -675,6 +679,14 @@
           applyState(JSON.parse(raw));
           saveStatus.textContent = "已載入";
           return;
+        }
+        for (const key of LEGACY_STORAGE_KEYS) {
+          const legacyRaw = localStorage.getItem(key);
+          if (legacyRaw) {
+            applyState(stripLegacyMoods(JSON.parse(legacyRaw)));
+            saveStatus.textContent = "已載入";
+            return;
+          }
         }
       } catch {
         saveStatus.textContent = "本機保存";
@@ -699,7 +711,7 @@
       const origin = state.origin || "我目前所在位置";
       const budgetLine = Number(state.budget) > 0 ? `${state.budget} 元內優先` : "免費或低費用優先";
       const rangeGuidance = getRangeGuidance(state.duration);
-      const moodLine = state.moods.length ? state.moods.join("、") : defaults.moods.join("、");
+      const moodLine = state.moods.length ? state.moods.join("、") : "未指定，請依其他條件判斷";
 
       return `請幫我找「${state.dateRange}」可以去的活動、展覽、散步地點或咖啡附近行程。
 
