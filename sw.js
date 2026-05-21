@@ -1,4 +1,4 @@
-const CACHE_NAME = "activity-radar-v7";
+const CACHE_NAME = "activity-radar-v9";
 const ASSETS = [
   "./",
   "./index.html",
