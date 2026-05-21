@@ -233,6 +233,20 @@
       font-weight: 900;
     }
 
+    .preference-note {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--green-soft);
+      color: var(--green);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
     .segmented {
       display: grid;
       grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
@@ -523,6 +537,11 @@
         </div>
 
         <div class="field">
+          <div class="field-label">交通</div>
+          <div class="preference-note">大眾運輸方便優先，尤其捷運 / 火車</div>
+        </div>
+
+        <div class="field">
           <div class="label-row">
             <label for="budget">預算</label>
             <span class="hint">元以內優先</span>
@@ -664,6 +683,7 @@
 - 預算：${budgetLine}
 - 今天心情：${state.mood}
 - 預設偏好：展覽、散步、咖啡、低壓、一個人也適合
+- 交通偏好：大眾運輸方便優先，尤其以捷運、火車可達為優先；避免需要長程公車、轉乘太多、步行太久或主要靠計程車才方便的地點
 
 請即時查詢目前可用資訊，給我 5 個選項。不要排很滿，每個選項以 1 個主活動為主，可以加 1 個附近順路點。
 
@@ -672,12 +692,13 @@
 2. 照片或預覽連結
 3. Google Maps 連結，如果是展覽、店家、景點、咖啡店或其他實體地點都要附
 4. 為什麼適合我
-5. 從出發地過去的交通方式與時間
-6. 預估總外出時間
-7. 費用
-8. 營業時間或活動時間
-9. 是否需要預約或買票
-10. 注意事項，例如休館、天氣、太熱、太晚、座位少
+5. 從出發地過去的交通方式與時間，優先列捷運或火車路線
+6. 最近捷運站或火車站，以及下車後步行時間
+7. 預估總外出時間
+8. 費用
+9. 營業時間或活動時間
+10. 是否需要預約或買票
+11. 注意事項，例如休館、天氣、太熱、太晚、座位少、交通是否麻煩
 
 最後請幫我標出：
 - 最省力
