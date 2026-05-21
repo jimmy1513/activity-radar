@@ -529,20 +529,20 @@
           </div>
           <div class="budget-stepper">
             <button class="budget-button" type="button" id="budgetMinus">-100</button>
-            <input class="input budget-input" id="budget" name="budget" type="number" inputmode="numeric" min="0" step="100" value="300" readonly aria-live="polite">
+            <input class="input budget-input" id="budget" name="budget" type="number" inputmode="numeric" min="0" step="100" value="400" aria-live="polite">
             <button class="budget-button" type="button" id="budgetPlus">+100</button>
           </div>
         </div>
 
         <div class="field">
           <div class="field-label">心情</div>
-          <div class="segmented" style="--columns: 3" role="radiogroup" aria-label="心情">
-            <label class="chip"><input type="radio" name="mood" value="放鬆，低壓，不想排行程" checked><span>放鬆</span></label>
-            <label class="chip"><input type="radio" name="mood" value="想看展覽或有內容的地方"><span>看展</span></label>
-            <label class="chip"><input type="radio" name="mood" value="想散步，順路看看風景"><span>散步</span></label>
-            <label class="chip"><input type="radio" name="mood" value="想找咖啡或舒服座位"><span>咖啡</span></label>
-            <label class="chip"><input type="radio" name="mood" value="隨便給我一個最適合今天的選項"><span>隨便</span></label>
-            <label class="chip"><input type="radio" name="mood" value="想要一點新鮮感，但不要太累"><span>新鮮</span></label>
+          <div class="segmented" style="--columns: 3" role="group" aria-label="心情，可複選最多兩個">
+            <label class="chip"><input type="checkbox" name="moods" value="放空，低壓，不想排行程" checked><span>放空</span></label>
+            <label class="chip"><input type="checkbox" name="moods" value="走走，想出門動一下但不要太硬"><span>走走</span></label>
+            <label class="chip"><input type="checkbox" name="moods" value="看東西，想要有內容的展覽、書店、圖書館、博物館或藝文空間"><span>看東西</span></label>
+            <label class="chip"><input type="checkbox" name="moods" value="坐下來，想找舒服座位、咖啡店、茶店或安靜空間"><span>坐下來</span></label>
+            <label class="chip"><input type="checkbox" name="moods" value="跑遠一點，今天可以去比較不日常、值得專程去的地方"><span>跑遠一點</span></label>
+            <label class="chip"><input type="checkbox" name="moods" value="幫我挑，不想決定，請根據其他條件選最適合今天的" data-exclusive="true"><span>幫我挑</span></label>
           </div>
         </div>
 
@@ -571,7 +571,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    const STORAGE_KEY = "activityRadar:v2";
+    const STORAGE_KEY = "activityRadar:v3";
+    const MOOD_LIMIT = 2;
 
     const defaults = {
       origin: "",
@@ -579,8 +580,8 @@
       duration: "2 小時內",
       energy: "低，想省力",
       space: "室內或半室內",
-      budget: "300",
-      mood: "放鬆，低壓，不想排行程"
+      budget: "400",
+      moods: ["放空，低壓，不想排行程"]
     };
 
     const form = document.querySelector("#radarForm");
@@ -604,6 +605,76 @@
       if (item) item.checked = true;
     }
 
+    function getMoodInputs() {
+      return Array.from(form.querySelectorAll('input[name="moods"]'));
+    }
+
+    function getMoodValues() {
+      const values = getMoodInputs()
+        .filter((input) => input.checked)
+        .map((input) => input.value);
+      return values.length ? values : defaults.moods;
+    }
+
+    function applyMoodValues(values) {
+      const selected = Array.isArray(values) ? values : [values].filter(Boolean);
+      getMoodInputs().forEach((input) => {
+        input.checked = selected.includes(input.value);
+      });
+      enforceMoodRules();
+    }
+
+    function enforceMoodRules(changedInput) {
+      const inputs = getMoodInputs();
+      const exclusive = inputs.find((input) => input.dataset.exclusive === "true");
+
+      if (changedInput && changedInput.checked && changedInput.dataset.exclusive === "true") {
+        inputs.forEach((input) => {
+          if (input !== changedInput) input.checked = false;
+        });
+        return;
+      }
+
+      if (changedInput && changedInput.checked && exclusive) {
+        exclusive.checked = false;
+      }
+
+      if (exclusive && exclusive.checked) {
+        inputs.forEach((input) => {
+          if (input !== exclusive) input.checked = false;
+        });
+        return;
+      }
+
+      const selected = inputs.filter((input) => input.checked);
+      if (selected.length > MOOD_LIMIT) {
+        if (changedInput) {
+          changedInput.checked = false;
+          showToast("心情最多選 2 個");
+        } else {
+          selected.slice(MOOD_LIMIT).forEach((input) => {
+            input.checked = false;
+          });
+        }
+      }
+
+      if (!inputs.some((input) => input.checked)) {
+        const fallback = inputs.find((input) => input.value === defaults.moods[0]) || inputs[0];
+        if (fallback) fallback.checked = true;
+      }
+    }
+
+    function getBudgetValue() {
+      const value = Number.parseInt(form.budget.value, 10);
+      if (!Number.isFinite(value)) return defaults.budget;
+      return String(Math.max(0, value));
+    }
+
+    function normalizeBudgetInput() {
+      form.budget.value = getBudgetValue();
+      generatePrompt();
+    }
+
     function getState() {
       return {
         origin: form.origin.value.trim(),
@@ -611,20 +682,21 @@
         duration: getRadioValue("duration"),
         energy: getRadioValue("energy"),
         space: getRadioValue("space"),
-        budget: form.budget.value.trim() || defaults.budget,
-        mood: getRadioValue("mood")
+        budget: getBudgetValue(),
+        moods: getMoodValues()
       };
     }
 
     function applyState(state) {
       const data = { ...defaults, ...state };
+      const moods = Array.isArray(data.moods) ? data.moods : [data.mood].filter(Boolean);
       form.origin.value = data.origin;
       form.budget.value = data.budget;
       setRadioValue("dateRange", data.dateRange);
       setRadioValue("duration", data.duration);
       setRadioValue("energy", data.energy);
       setRadioValue("space", data.space);
-      setRadioValue("mood", data.mood);
+      applyMoodValues(moods.length ? moods : defaults.moods);
     }
 
     function saveState() {
@@ -667,6 +739,7 @@
       const origin = state.origin || "我目前所在位置";
       const budgetLine = Number(state.budget) > 0 ? `${state.budget} 元內優先` : "免費或低費用優先";
       const rangeGuidance = getRangeGuidance(state.duration);
+      const moodLine = state.moods.length ? state.moods.join("、") : defaults.moods.join("、");
 
       return `請幫我找「${state.dateRange}」可以去的活動、展覽、散步地點或咖啡附近行程。
 
@@ -676,7 +749,7 @@
 - 體力：${state.energy}
 - 空間偏好：${state.space}
 - 預算：${budgetLine}
-- 今天心情：${state.mood}
+- 今天心情：${moodLine}
 - 預設偏好：展覽、散步、咖啡、低壓、一個人也適合
 - 交通偏好：大眾運輸優先
 - ${rangeGuidance}
@@ -714,8 +787,8 @@
     }
 
     function adjustBudget(delta) {
-      const current = Number.parseInt(form.budget.value, 10);
-      const next = Math.max(0, (Number.isFinite(current) ? current : Number(defaults.budget)) + delta);
+      const current = Number.parseInt(getBudgetValue(), 10);
+      const next = Math.max(0, current + delta);
       form.budget.value = String(next);
       generatePrompt();
     }
@@ -746,11 +819,17 @@
       copyPrompt();
     });
 
-    form.addEventListener("input", () => {
+    form.addEventListener("input", (event) => {
+      if (event.target.name === "moods") {
+        enforceMoodRules(event.target);
+      }
       generatePrompt();
     });
 
-    form.addEventListener("change", () => {
+    form.addEventListener("change", (event) => {
+      if (event.target.name === "moods") {
+        enforceMoodRules(event.target);
+      }
       saveState();
       generatePrompt();
     });
@@ -759,6 +838,7 @@
     quickCopy.addEventListener("click", copyPrompt);
     budgetMinus.addEventListener("click", () => adjustBudget(-100));
     budgetPlus.addEventListener("click", () => adjustBudget(100));
+    form.budget.addEventListener("blur", normalizeBudgetInput);
 
     resetButton.addEventListener("click", () => {
       applyState(defaults);
