@@ -198,34 +198,7 @@
 
     .budget-stepper {
       display: grid;
-      grid-template-columns: minmax(92px, 0.72fr) minmax(100px, 1fr) minmax(92px, 0.72fr);
-      gap: 8px;
-      align-items: stretch;
-    }
-
-    .budget-button {
-      min-height: 50px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface-strong);
-      color: var(--green);
-      font-weight: 900;
-      cursor: pointer;
-      transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
-    }
-
-    .budget-button:hover {
-      border-color: var(--green);
-      background: var(--green-soft);
-    }
-
-    .budget-button:active {
-      transform: translateY(1px);
-    }
-
-    .budget-button:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 4px rgba(49, 92, 75, 0.16);
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .budget-input {
@@ -438,15 +411,6 @@
         font-size: 0.84rem;
       }
 
-      .budget-stepper {
-        grid-template-columns: minmax(78px, 0.8fr) minmax(96px, 1fr) minmax(78px, 0.8fr);
-      }
-
-      .budget-button {
-        min-height: 48px;
-        padding-inline: 8px;
-      }
-
       .hint {
         display: none;
       }
@@ -528,9 +492,7 @@
             <span class="hint">元以內優先</span>
           </div>
           <div class="budget-stepper">
-            <button class="budget-button" type="button" id="budgetMinus">-100</button>
             <input class="input budget-input" id="budget" name="budget" type="number" inputmode="numeric" min="0" step="100" value="400" aria-live="polite">
-            <button class="budget-button" type="button" id="budgetPlus">+100</button>
           </div>
         </div>
 
@@ -591,8 +553,6 @@
     const copyButton = document.querySelector("#copyButton");
     const quickCopy = document.querySelector("#quickCopy");
     const resetButton = document.querySelector("#resetButton");
-    const budgetMinus = document.querySelector("#budgetMinus");
-    const budgetPlus = document.querySelector("#budgetPlus");
     let toastTimer = 0;
 
     function getRadioValue(name) {
@@ -786,13 +746,6 @@
       return prompt;
     }
 
-    function adjustBudget(delta) {
-      const current = Number.parseInt(getBudgetValue(), 10);
-      const next = Math.max(0, current + delta);
-      form.budget.value = String(next);
-      generatePrompt();
-    }
-
     function showToast(message) {
       window.clearTimeout(toastTimer);
       toast.textContent = message;
@@ -836,8 +789,6 @@
 
     copyButton.addEventListener("click", copyPrompt);
     quickCopy.addEventListener("click", copyPrompt);
-    budgetMinus.addEventListener("click", () => adjustBudget(-100));
-    budgetPlus.addEventListener("click", () => adjustBudget(100));
     form.budget.addEventListener("blur", normalizeBudgetInput);
 
     resetButton.addEventListener("click", () => {
