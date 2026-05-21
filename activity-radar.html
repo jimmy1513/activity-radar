@@ -252,7 +252,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr);
       gap: 8px;
       position: sticky;
       bottom: 0;
@@ -270,12 +270,6 @@
       font-weight: 800;
       cursor: pointer;
       transition: transform 140ms ease, filter 140ms ease;
-    }
-
-    .button.secondary {
-      min-width: 52px;
-      background: var(--coral);
-      font-size: 1.12rem;
     }
 
     .button:hover {
@@ -430,7 +424,7 @@
       <div class="brand">
         <p class="eyebrow">Activity Radar</p>
         <h1>今天去哪</h1>
-        <p class="subhead">選好狀態，生成一段可以直接貼到 ChatGPT 的活動搜尋提示詞。</p>
+        <p class="subhead">選好狀態，提示詞會自動更新；按複製後貼到 ChatGPT。</p>
       </div>
       <div class="status-pill" id="saveStatus" aria-live="polite">本機保存</div>
     </header>
@@ -503,8 +497,7 @@
         </div>
 
         <div class="actions">
-          <button class="button" type="submit">生成提示詞</button>
-          <button class="button secondary" type="button" id="quickCopy" title="複製提示詞" aria-label="複製提示詞">⧉</button>
+          <button class="button" type="button" id="quickCopy">複製提示詞</button>
         </div>
       </form>
 
@@ -673,12 +666,11 @@
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      generatePrompt();
-      showToast("提示詞已生成");
+      copyPrompt();
     });
 
     form.addEventListener("input", () => {
-      saveState();
+      generatePrompt();
     });
 
     form.addEventListener("change", () => {
